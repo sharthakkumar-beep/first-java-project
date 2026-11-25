@@ -1,0 +1,124 @@
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.*;
+
+class Notification {
+    int id;
+    String title, message, priority, status;
+    LocalDateTime time;
+
+    Notification(int id, String title, String message, LocalDateTime time, String priority) {
+        this.id = id;
+        this.title = title;
+        this.message = message;
+        this.time = time;
+        this.priority = priority;
+        this.status = "Pending";
+    }
+}
+
+public class Main {
+    static Scanner sc = new Scanner(System.in);
+    static ArrayList<Notification> list = new ArrayList<>();
+    static int id = 1;
+    static DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    static void create() {
+        System.out.print("Enter Title: ");
+        String title = sc.nextLine();
+
+        System.out.print("Enter Message: ");
+        String message = sc.nextLine();
+
+        LocalDateTime time = null;
+        while (time == null) {
+            System.out.print("Enter Time (yyyy-MM-dd HH:mm): ");
+            String timeStr = sc.nextLine();
+            try {
+                time = LocalDateTime.parse(timeStr, format);
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid format! Please use yyyy-MM-dd HH:mm (e.g., 2026-11-25 14:30)");
+            }
+        }
+
+        System.out.print("Enter Priority (High/Medium/Low): ");
+        String priority = sc.nextLine();
+
+        list.add(new Notification(id++, title, message, time, priority));
+        System.out.println("Notification scheduled successfully!\n");
+    }
+
+    static void viewAll() {
+        if (list.isEmpty()) {
+            System.out.println("No notifications scheduled.\n");
+            return;
+        }
+        System.out.println("\n--- Scheduled Notifications ---");
+        for (Notification n : list) {
+            System.out.println("ID: " + n.id + " | Title: " + n.title + " | Message: " + n.message +
+                    " | Time: " + n.time.format(format) + " | Priority: " + n.priority +
+                    " | Status: " + n.status);
+        }
+        System.out.println();
+    }
+
+    static void checkAndTrigger() {
+        LocalDateTime now = LocalDateTime.now();
+        boolean triggered = false;
+        for (Notification n : list) {
+            if (n.status.equals("Pending") && !n.time.isAfter(now)) {
+                n.status = "Sent";
+                System.out.println("\n[ALERT - " + n.priority + "] " + n.title + ": " + n.message);
+                triggered = true;
+            }
+        }
+        if (!triggered) {
+            System.out.println("No due notifications right now.\n");
+        }
+    }
+
+    static void deleteNotification() {
+        System.out.print("Enter Notification ID to delete: ");
+        int delId = Integer.parseInt(sc.nextLine());
+        boolean removed = list.removeIf(n -> n.id == delId);
+        if (removed) {
+            System.out.println("Notification deleted.\n");
+        } else {
+            System.out.println("ID not found.\n");
+        }
+    }
+
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("=== Notification Scheduler ===");
+            System.out.println("1. Schedule Notification");
+            System.out.println("2. View All Notifications");
+            System.out.println("3. Check Due Notifications");
+            System.out.println("4. Delete Notification");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option: ");
+
+            String choice = sc.nextLine();
+            switch (choice) {
+                case "1":
+                    create();
+                    break;
+                case "2":
+                    viewAll();
+                    break;
+                case "3":
+                    checkAndTrigger();
+                    break;
+                case "4":
+                    deleteNotification();
+                    break;
+                case "5":
+                    System.out.println("Exiting...");
+                    return;
+                default:
+                    System.out.println("Invalid choice! Try again.\n");
+            }
+        }
+    }
+}
